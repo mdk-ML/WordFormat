@@ -186,7 +186,15 @@ NextPara:
     With doc.Range
          .Font.Name = "Times New Roman"
      End With
-    
+     
+    ' ========== 10.清除全文所有段落的自动编号 ==========
+    Dim finalPara As Paragraph
+    For Each finalPara In doc.Paragraphs
+        ' 强制移除该段落的任何自动编号/列表格式
+        finalPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
+    Next finalPara
+    ' =====================================================================
+          
     ' 清除选择
     doc.UndoClear
     doc.Range(0, 0).Select
