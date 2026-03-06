@@ -194,7 +194,29 @@ NextPara:
         finalPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
     Next finalPara
     ' =====================================================================
-          
+  
+    ' === 11. 【修复】设置所有图片为上下环绕===
+    ' 处理嵌入型图片
+    Dim inlineShape As inlineShape
+    For Each inlineShape In doc.InlineShapes
+        If inlineShape.Type = wdInlineShapePicture Then
+            inlineShape.ConvertToShape
+        End If
+    Next inlineShape
+    
+    Dim shape As shape
+    For Each shape In doc.Shapes
+        If shape.Type = msoPicture Then
+            ' 确保不是嵌入型
+            If shape.WrapFormat.Type = wdWrapInline Then
+                shape.WrapFormat.Type = wdWrapSquare
+            End If
+            ' 两次设置确保正确应用
+            shape.WrapFormat.Type = wdWrapTopBottom
+            shape.WrapFormat.Type = wdWrapTopBottom
+        End If
+    Next shape
+         
     ' 清除选择
     doc.UndoClear
     doc.Range(0, 0).Select
