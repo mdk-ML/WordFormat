@@ -1,16 +1,32 @@
-'将文档按照GB/T 9704-2012 规范格式化
-'牟雷
-'2026年02月05日 21:00
+' 将文档按照GB/T 9704-2012 规范格式化
+' 牟雷
+' 2026年02月05日 21:00
 Sub Format2GBT9704_2012()
     Dim doc As Document
     Set doc = ActiveDocument
-      
+
+    ' === -1 【修复】将所有手动换行符(软回车)替换为段落标记(硬回车) ===
+    ' 关闭屏幕更新以加快速度并防止闪烁
+    Application.ScreenUpdating = False
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        ' ^l 代表手动换行符 (Shift+Enter)
+        .text = "^l"
+        ' ^p 代表段落标记 (Enter)
+        .Replacement.text = "^p"
+        ' 执行全局替换
+        .Execute Replace:=wdReplaceAll
+    End With
+    ' 恢复屏幕更新
+    Application.ScreenUpdating = True
+
     ' === 0. 一次性转换全文自动编号为文本（保留递增编号）===
     Dim docRange As Range
     Set docRange = doc.Content  ' 获取整个文档的范围
     ' 一次性转换所有自动编号为纯文本（保留原递增编号：1.、2.、3.）
     docRange.ListFormat.ConvertNumbersToText
-    
+
     ' === 1. 页面设置 ===
     With doc.PageSetup
         .TopMargin = CentimetersToPoints(3.7)
@@ -18,11 +34,11 @@ Sub Format2GBT9704_2012()
         .LeftMargin = CentimetersToPoints(2.7)
         .RightMargin = CentimetersToPoints(2.7)
     End With
-    
+
     ' === 2. 定义字号 ===
     Const FontSize_Normal As Integer = 16   ' 三号 = 16 磅
     Const FontSize_Title1 As Integer = 22   ' 二号 ≈ 22 磅
-    
+
     ' === 3. 设置 Normal 样式（正文）===
     With doc.Styles(wdStyleNormal)
         With .Font
@@ -37,10 +53,10 @@ Sub Format2GBT9704_2012()
             .SpaceAfter = 0
         End With
     End With
-    
+
     ' === 4. 设置 一级标题 ===
     With doc.Styles(wdStyleHeading1)
-    .AutomaticallyUpdate = False
+        .AutomaticallyUpdate = False
         With .Font
             .Name = "黑体"
             .Size = FontSize_Normal
@@ -49,18 +65,17 @@ Sub Format2GBT9704_2012()
         With .ParagraphFormat
             .LineSpacingRule = wdLineSpaceExactly
             .LineSpacing = 28
-                        .SpaceBefore = 0
+            .SpaceBefore = 0
             .SpaceAfter = 0
-                    .SpaceBeforeAuto = False   ' ← 禁用“自动”
-        .SpaceAfterAuto = False    ' ← 禁用“自动”
-             .FirstLineIndent = CharactersToPoints(2)
-
+            .SpaceBeforeAuto = False   ' ← 禁用“自动”
+            .SpaceAfterAuto = False    ' ← 禁用“自动”
+            .FirstLineIndent = CharactersToPoints(2)
         End With
     End With
-    
+
     ' === 5. 设置 二级标题 ===
     With doc.Styles(wdStyleHeading2)
-    .AutomaticallyUpdate = False
+        .AutomaticallyUpdate = False
         With .Font
             .Name = "楷体_GB2312"
             .Size = FontSize_Normal
@@ -71,20 +86,19 @@ Sub Format2GBT9704_2012()
             .LineSpacing = 28
             .SpaceBefore = 0
             .SpaceAfter = 0
-                    .SpaceBeforeAuto = False   ' ← 禁用“自动”
-        .SpaceAfterAuto = False    ' ← 禁用“自动”
+            .SpaceBeforeAuto = False   ' ← 禁用“自动”
+            .SpaceAfterAuto = False    ' ← 禁用“自动”
             .FirstLineIndent = CharactersToPoints(2)
-     
         End With
     End With
-    
-        ' === 6. 应用样式到全文段落（清除直接格式）===
+
+    ' === 6. 应用样式到全文段落（清除直接格式）===
     Dim para As Paragraph
     For Each para In doc.Paragraphs
         If Len(Trim(para.Range.text)) > 1 Then
             para.Range.Select
             Selection.ClearFormatting
-            
+
             If para.Style = "标题 1" Or para.Style = "Heading 1" Then
                 para.Style = wdStyleHeading1
             ElseIf para.Style = "标题 2" Or para.Style = "Heading 2" Then
@@ -94,31 +108,30 @@ Sub Format2GBT9704_2012()
             End If
         End If
     Next para
-    
-    ' === 7. 【新增】自动匹配标题1和标题2（基于前缀）===
 
+    ' === 7. 【新增】自动匹配标题1和标题2（基于前缀）===
     Dim text As String
     Dim trimmedText As String
-    
+
     ' 定义前缀（注意：括号使用全角“（）”，顿号用“、”）
     Dim level1Prefixes As Variant
     Dim level2Prefixes As Variant
-    level1Prefixes = Array("一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、","十一、", "十二、", "十三、", "十四、", "十五、", "十六、", "十七、", "十八、", "十九、", "二十")
-    level2Prefixes = Array("（一）", "（二）", "（三）", "（四）", "（五）", "（六）", "（七）", "（八）", "（九）", "（十）","（十一）", "（十二）", "（十三）", "（十四）", "（十五）", "（十六）", "（十七）", "（十八）", "（十九）", "（二十）")
-    
+    level1Prefixes = Array("一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、", "十一、", "十二、", "十三、", "十四、", "十五、", "十六、", "十七、", "十八、", "十九、", "二十、")
+    level2Prefixes = Array("（一）", "（二）", "（三）", "（四）", "（五）", "（六）", "（七）", "（八）", "（九）", "（十）", "（十一）", "（十二）", "（十三）", "（十四）", "（十五）", "（十六）", "（十七）", "（十八）", "（十九）", "（二十）")
+
     For Each para In doc.Paragraphs
         text = para.Range.text
         If Len(text) <= 1 Then GoTo NextPara  ' 跳过空段落
-        
+
         trimmedText = Left(text, Len(text) - 1) ' 去掉末尾的段落标记 (Chr(13))
-        
+
         ' 跳过纯空白段落
         If Trim(trimmedText) = "" Then GoTo NextPara
-        
+
         Dim i As Integer
         Dim matched As Boolean
         matched = False
-        
+
         ' 检查是否为一级标题
         For i = 0 To UBound(level1Prefixes)
             If Len(trimmedText) >= Len(level1Prefixes(i)) Then
@@ -129,7 +142,7 @@ Sub Format2GBT9704_2012()
                 End If
             End If
         Next i
-        
+
         If Not matched Then
             ' 检查是否为二级标题
             For i = 0 To UBound(level2Prefixes)
@@ -142,7 +155,7 @@ Sub Format2GBT9704_2012()
                 End If
             Next i
         End If
-        
+
         ' 如果都不是，则设为正文
         If Not matched Then
             para.Style = wdStyleNormal
@@ -150,11 +163,11 @@ Sub Format2GBT9704_2012()
 
 NextPara:
     Next para
-    
+
     ' === 8. 格式化第一段为公文标题（方正小标宋简体 二号 居中）===
     Dim firstPara As Paragraph
     Set firstPara = FindFirstNonEmptyParagraph(doc)
-    
+
     If Not firstPara Is Nothing Then
         With firstPara.Range
             .Font.Name = "方正小标宋简体"
@@ -166,27 +179,26 @@ NextPara:
             .ParagraphFormat.LineSpacing = 28
             .Font.Bold = False
         End With
-        
-        ' === 在标题后插入一个空段落（即“空一行”）===
-    Dim nextRange As Range
-    Set nextRange = firstPara.Range.Duplicate
-    nextRange.Collapse Direction:=wdCollapseEnd
-    nextRange.InsertParagraphAfter  ' 插入一个空段落
-    
-    ' 可选：确保这个空段落是 Normal 样式（符合正文规范）
-    Dim emptyPara As Paragraph
-    Set emptyPara = nextRange.Paragraphs(1)
-    emptyPara.Style = wdStyleNormal
-    ' 清除可能的直接格式
-    emptyPara.Range.Font.Reset
-    End If
-    
-    ' === 9. 全部字体设为Times New Roman（因为此字体不包含中文，所以只会改变数字、英文的字体格式，中文字体保留原样） ===
 
+        ' === 在标题后插入一个空段落（即“空一行”）===
+        Dim nextRange As Range
+        Set nextRange = firstPara.Range.Duplicate
+        nextRange.Collapse Direction:=wdCollapseEnd
+        nextRange.InsertParagraphAfter  ' 插入一个空段落
+
+        ' 可选：确保这个空段落是 Normal 样式（符合正文规范）
+        Dim emptyPara As Paragraph
+        Set emptyPara = nextRange.Paragraphs(1)
+        emptyPara.Style = wdStyleNormal
+        ' 清除可能的直接格式
+        emptyPara.Range.Font.Reset
+    End If
+
+    ' === 9. 全部字体设为Times New Roman（因为此字体不包含中文，所以只会改变数字、英文的字体格式，中文字体保留原样） ===
     With doc.Range
-         .Font.Name = "Times New Roman"
-     End With
-     
+        .Font.Name = "Times New Roman"
+    End With
+
     ' ========== 10.清除全文所有段落的自动编号 ==========
     Dim finalPara As Paragraph
     For Each finalPara In doc.Paragraphs
@@ -194,7 +206,7 @@ NextPara:
         finalPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
     Next finalPara
     ' =====================================================================
-  
+
     ' === 11. 【修复】设置所有图片为上下环绕===
     ' 处理嵌入型图片
     Dim inlineShape As inlineShape
@@ -203,7 +215,7 @@ NextPara:
             inlineShape.ConvertToShape
         End If
     Next inlineShape
-    
+
     Dim shape As shape
     For Each shape In doc.Shapes
         If shape.Type = msoPicture Then
@@ -214,11 +226,11 @@ NextPara:
             shape.WrapFormat.Type = wdWrapTopBottom
         End If
     Next shape
-         
+
     ' 清除选择
     doc.UndoClear
     doc.Range(0, 0).Select
-    
+
     MsgBox "文档已按照GB/T 9704-2012格式化完成。", vbInformation
 End Sub
 
@@ -238,6 +250,3 @@ End Function
 Function CharactersToPoints(charCount As Integer) As Single
     CharactersToPoints = charCount * 16 ' 1字符 = 16 磅
 End Function
-
-
-
