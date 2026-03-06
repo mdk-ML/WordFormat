@@ -211,8 +211,6 @@ NextPara:
             If shape.WrapFormat.Type = wdWrapInline Then
                 shape.WrapFormat.Type = wdWrapSquare
             End If
-            ' 两次设置确保正确应用
-            shape.WrapFormat.Type = wdWrapTopBottom
             shape.WrapFormat.Type = wdWrapTopBottom
         End If
     Next shape
