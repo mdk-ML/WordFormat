@@ -226,6 +226,21 @@ NextPara:
             shape.WrapFormat.Type = wdWrapTopBottom
         End If
     Next shape
+    
+    ' === 12. 处理表格：取消表格中所有段落的首行缩进 ===
+    Dim tbl As Table
+    Dim cell As cell
+    Dim rng As Range
+    For Each tbl In doc.Tables
+        For Each cell In tbl.Range.Cells
+            Set rng = cell.Range
+            ' 确保不包含单元格结束标记
+            rng.End = rng.End - 1
+            For Each para In rng.Paragraphs
+                para.Range.ParagraphFormat.FirstLineIndent = 0
+            Next para
+        Next cell
+    Next tbl
 
     ' 清除选择
     doc.UndoClear
