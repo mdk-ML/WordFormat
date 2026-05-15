@@ -341,6 +341,34 @@ NextPara:
         Next cell
     Next tbl
 
+    ' 设置页码：格式为"— 1 —"，奇数页右下角，偶数页左下角
+    Dim sec As Section
+    Dim footerEven As HeaderFooter
+    Dim footerOdd As HeaderFooter
+
+    ' 启用奇偶页不同页眉页脚
+    doc.PageSetup.OddAndEvenPagesHeaderFooter = True
+
+    For Each sec In doc.Sections
+        ' 奇数页页脚（右侧）
+        Set footerOdd = sec.Footers(wdHeaderFooterPrimary)
+        footerOdd.Range.Text = ""
+        footerOdd.Range.Select
+        Selection.TypeText "— "
+        Selection.Fields.Add Selection.Range, wdFieldPage
+        Selection.TypeText " —"
+        footerOdd.Range.ParagraphFormat.Alignment = wdAlignParagraphRight
+
+        ' 偶数页页脚（左侧）
+        Set footerEven = sec.Footers(wdHeaderFooterEvenPages)
+        footerEven.Range.Text = ""
+        footerEven.Range.Select
+        Selection.TypeText "— "
+        Selection.Fields.Add Selection.Range, wdFieldPage
+        Selection.TypeText " —"
+        footerEven.Range.ParagraphFormat.Alignment = wdAlignParagraphLeft
+    Next sec
+
     ' 清除选择
     doc.UndoClear
     doc.Range(0, 0).Select
