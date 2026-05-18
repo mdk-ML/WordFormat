@@ -358,6 +358,10 @@ NextPara:
         Selection.Fields.Add Selection.Range, wdFieldPage
         Selection.TypeText " —"
         footerOdd.Range.ParagraphFormat.Alignment = wdAlignParagraphRight
+        With footerOdd.Range.Font
+            .Name = "宋体"
+            .Size = 14
+        End With
 
         ' 偶数页页脚（左侧）
         Set footerEven = sec.Footers(wdHeaderFooterEvenPages)
@@ -367,6 +371,10 @@ NextPara:
         Selection.Fields.Add Selection.Range, wdFieldPage
         Selection.TypeText " —"
         footerEven.Range.ParagraphFormat.Alignment = wdAlignParagraphLeft
+        With footerEven.Range.Font
+            .Name = "宋体"
+            .Size = 14
+        End With
     Next sec
 
     ' 清除选择
