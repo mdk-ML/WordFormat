@@ -180,6 +180,11 @@ Sub Format2GBT9704_2012()
         Dim matched As Boolean
         matched = False
 
+        ' 标题超过一行（段落行数大于1）则不判定为标题
+        Dim lineCount As Long
+        lineCount = para.Range.ComputeStatistics(wdStatisticLines)
+        If lineCount > 1 Then GoTo NextPara
+
         ' 检查是否为一级标题
         For i = 0 To UBound(level1Prefixes)
             If Len(trimmedText) >= Len(level1Prefixes(i)) Then
