@@ -346,6 +346,34 @@ NextPara:
         Next cell
     Next tbl
 
+    ' 替换全文空格：保留英文之间的空格，删除其他空格
+    ' 第一步：将英文之间的空格替换为临时标记
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .text = "([a-zA-Z]) ([a-zA-Z])"
+        .Replacement.text = "\1§TEMP§\2"
+        .MatchWildcards = True
+        .Execute Replace:=wdReplaceAll
+    End With
+    ' 第二步：删除所有剩余空格
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .text = " "
+        .Replacement.text = ""
+        .MatchWildcards = False
+        .Execute Replace:=wdReplaceAll
+    End With
+    ' 第三步：将临时标记恢复为空格
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .text = "§TEMP§"
+        .Replacement.text = " "
+        .Execute Replace:=wdReplaceAll
+    End With
+
     ' 设置页码：格式为"— 1 —"，奇数页右下角，偶数页左下角
     Dim sec As Section
     Dim footerEven As HeaderFooter
