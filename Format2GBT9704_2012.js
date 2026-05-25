@@ -104,7 +104,16 @@ function Format2GBT9704_2012() {
     // 应用样式到全文段落（清除直接格式）
     for (var p = 1; p <= doc.Paragraphs.Count; p++) {
         var para = doc.Paragraphs.Item(p);
-        if (para.Range.Text.trim().length > 1) {
+        var textLen = para.Range.Text.trim().length;
+        
+        // 检查是否包含嵌入型图片（优先判断）
+        var hasImage = HasInlineImage(para, doc);
+        
+        if (hasImage) {
+            // 图片段落特殊处理：使用单倍行距，不缩进
+            para.Range.ParagraphFormat.LineSpacingRule = 0;
+            para.Range.ParagraphFormat.FirstLineIndent = 0;
+        } else if (textLen > 1) {
             para.Range.Select();
             Application.Selection.ClearFormatting();
 
@@ -268,26 +277,6 @@ function Format2GBT9704_2012() {
         finalPara.Range.ListFormat.RemoveNumbers(wdNumberAllNumbers);
     }
 
-    // 设置所有图片为上下环绕
-    // 处理嵌入型图片
-    for (var is = 1; is <= doc.InlineShapes.Count; is++) {
-        var inlineShape = doc.InlineShapes.Item(is);
-        if (inlineShape.Type === wdInlineShapePicture) {
-            inlineShape.ConvertToShape();
-        }
-    }
-
-    for (var s = 1; s <= doc.Shapes.Count; s++) {
-        var shape = doc.Shapes.Item(s);
-        if (shape.Type === msoPicture) {
-            // 确保不是嵌入型
-            if (shape.WrapFormat.Type === wdWrapInline) {
-                shape.WrapFormat.Type = wdWrapSquare;
-            }
-            shape.WrapFormat.Type = wdWrapTopBottom;
-        }
-    }
-
     // 处理表格：取消表格中所有段落的首行缩进
     for (var t = 1; t <= doc.Tables.Count; t++) {
         var tbl = doc.Tables.Item(t);
@@ -380,4 +369,29 @@ function FindFirstNonEmptyParagraph(doc) {
 // 辅助函数：2字符缩进（32磅）
 function CharactersToPoints(charCount) {
     return charCount * 16; // 1字符 = 16 磅
+}
+
+// 辅助函数：检查段落是否包含嵌入型图片
+function HasInlineImage(para, doc) {
+    var shapesCount = para.Range.InlineShapes.Count;
+    
+    if (shapesCount > 0) {
+        return true;
+    }
+    
+    // 备用方式：通过doc.InlineShapes遍历检查位置
+    var paraStart = para.Range.Start;
+    var paraEnd = para.Range.End;
+    
+    for (var i = 1; i <= doc.InlineShapes.Count; i++) {
+        var shape = doc.InlineShapes.Item(i);
+        var shapeStart = shape.Range.Start;
+        var shapeEnd = shape.Range.End;
+        
+        if (shapeStart >= paraStart && shapeEnd <= paraEnd) {
+            return true;
+        }
+    }
+    
+    return false;
 }

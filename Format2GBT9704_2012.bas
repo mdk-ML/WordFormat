@@ -134,19 +134,26 @@ Sub Format2GBT9704_2012()
     Dim para As Paragraph
     For Each para In doc.Paragraphs
         If Len(Trim(para.Range.text)) > 1 Then
-            para.Range.Select
-            Selection.ClearFormatting
-
-            If para.Style = "标题 1" Or para.Style = "Heading 1" Then
-                para.Style = wdStyleHeading1
-            ElseIf para.Style = "标题 2" Or para.Style = "Heading 2" Then
-                para.Style = wdStyleHeading2
-            ElseIf para.Style = "标题 3" Or para.Style = "Heading 3" Then
-                para.Style = wdStyleHeading3
-            ElseIf para.Style = "标题 4" Or para.Style = "Heading 4" Then
-                para.Style = wdStyleHeading4
+            ' 检查是否包含嵌入型图片
+            If HasInlineImage(para) Then
+                ' 图片段落特殊处理：使用单倍行距，不缩进
+                para.Range.ParagraphFormat.LineSpacingRule = wdLineSpaceSingle
+                para.Range.ParagraphFormat.FirstLineIndent = 0
             Else
-                para.Style = wdStyleNormal
+                para.Range.Select
+                Selection.ClearFormatting
+
+                If para.Style = "标题 1" Or para.Style = "Heading 1" Then
+                    para.Style = wdStyleHeading1
+                ElseIf para.Style = "标题 2" Or para.Style = "Heading 2" Then
+                    para.Style = wdStyleHeading2
+                ElseIf para.Style = "标题 3" Or para.Style = "Heading 3" Then
+                    para.Style = wdStyleHeading3
+                ElseIf para.Style = "标题 4" Or para.Style = "Heading 4" Then
+                    para.Style = wdStyleHeading4
+                Else
+                    para.Style = wdStyleNormal
+                End If
             End If
         End If
     Next para
@@ -311,26 +318,6 @@ NextPara:
         finalPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
     Next finalPara
 
-    ' 设置所有图片为上下环绕
-    ' 处理嵌入型图片
-    Dim inlineShape As inlineShape
-    For Each inlineShape In doc.InlineShapes
-        If inlineShape.Type = wdInlineShapePicture Then
-            inlineShape.ConvertToShape
-        End If
-    Next inlineShape
-
-    Dim shape As shape
-    For Each shape In doc.Shapes
-        If shape.Type = msoPicture Then
-            ' 确保不是嵌入型
-            If shape.WrapFormat.Type = wdWrapInline Then
-                shape.WrapFormat.Type = wdWrapSquare
-            End If
-            shape.WrapFormat.Type = wdWrapTopBottom
-        End If
-    Next shape
-    
     ' 处理表格：取消表格中所有段落的首行缩进
     Dim tbl As Table
     Dim cell As cell
@@ -432,4 +419,16 @@ End Function
 ' 辅助函数：2字符缩进（32磅）
 Function CharactersToPoints(charCount As Integer) As Single
     CharactersToPoints = charCount * 16 ' 1字符 = 16 磅
+End Function
+
+' 辅助函数：检查段落是否包含嵌入型图片
+Function HasInlineImage(para As Paragraph) As Boolean
+    Dim ilShape As InlineShape
+    For Each ilShape In para.Range.InlineShapes
+        If ilShape.Type = wdInlineShapePicture Then
+            HasInlineImage = True
+            Exit Function
+        End If
+    Next ilShape
+    HasInlineImage = False
 End Function
