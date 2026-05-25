@@ -27,6 +27,60 @@ Sub Format2GBT9704_2012()
     ' 一次性转换所有自动编号为纯文本（保留原递增编号：1.、2.、3.）
     docRange.ListFormat.ConvertNumbersToText
 
+    ' 清除全文所有段落的自动编号
+    Dim clearPara As Paragraph
+    For Each clearPara In doc.Paragraphs
+        clearPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
+    Next clearPara
+
+    ' 全文替换英文标点为中文标点
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = "("
+        .Replacement.Text = "（"
+        .Execute Replace:=wdReplaceAll
+    End With
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ")"
+        .Replacement.Text = "）"
+        .Execute Replace:=wdReplaceAll
+    End With
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ","
+        .Replacement.Text = "，"
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 替换全文空格：保留英文之间的空格，删除其他空格
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .text = "([a-zA-Z]) ([a-zA-Z])"
+        .Replacement.text = "\1§TEMP§\2"
+        .MatchWildcards = True
+        .Execute Replace:=wdReplaceAll
+    End With
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .text = " "
+        .Replacement.text = ""
+        .MatchWildcards = False
+        .Execute Replace:=wdReplaceAll
+    End With
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .text = "§TEMP§"
+        .Replacement.text = " "
+        .Execute Replace:=wdReplaceAll
+    End With
+
     ' 页面设置
     With doc.PageSetup
         .TopMargin = CentimetersToPoints(3.7)
@@ -170,7 +224,7 @@ Sub Format2GBT9704_2012()
     level1Prefixes = Array("一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、", "十一、", "十二、", "十三、", "十四、", "十五、", "十六、", "十七、", "十八、", "十九、", "二十、")
     level2Prefixes = Array("（一）", "（二）", "（三）", "（四）", "（五）", "（六）", "（七）", "（八）", "（九）", "（十）", "（十一）", "（十二）", "（十三）", "（十四）", "（十五）", "（十六）", "（十七）", "（十八）", "（十九）", "（二十）")
     level3Prefixes = Array("1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.", "11.", "12.", "13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.", "23.", "24.", "25.", "26.", "27.", "28.", "29.", "30.")
-    level4Prefixes = Array("(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(10)", "(11)", "(12)", "(13)", "(14)", "(15)", "(16)", "(17)", "(18)", "(19)", "(20)", "(21)", "(22)", "(23)", "(24)", "(25)", "(26)", "(27)", "(28)", "(29)", "(30)")
+    level4Prefixes = Array("（1）", "（2）", "（3）", "（4）", "（5）", "（6）", "（7）", "（8）", "（9）", "（10）", "（11）", "（12）", "（13）", "（14）", "（15）", "（16）", "（17）", "（18）", "（19）", "（20）", "（21）", "（22）", "（23）", "（24）", "（25）", "（26）", "（27）", "（28）", "（29）", "（30）")
     
 
     Dim p As Long
@@ -349,31 +403,6 @@ Sub Format2GBT9704_2012()
 NextPara:
     Next p
 
-    ' 全文替换英文标点为中文标点
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = "("
-        .Replacement.Text = "（"
-        .Execute Replace:=wdReplaceAll
-    End With
-
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = ")"
-        .Replacement.Text = "）"
-        .Execute Replace:=wdReplaceAll
-    End With
-
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = ","
-        .Replacement.Text = "，"
-        .Execute Replace:=wdReplaceAll
-    End With
-
     ' 全文加粗特定前缀（一是、二是等）
     Dim boldPrefixes As Variant
     boldPrefixes = Array("一是", "二是", "三是", "四是", "五是", "六是", "七是", "八是", "九是", "十是")
@@ -431,13 +460,6 @@ NextPara:
         .Font.Name = "Times New Roman"
     End With
 
-    ' 清除全文所有段落的自动编号
-    Dim finalPara As Paragraph
-    For Each finalPara In doc.Paragraphs
-        ' 强制移除该段落的任何自动编号/列表格式
-        finalPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
-    Next finalPara
-
     ' 处理表格：取消表格中所有段落的首行缩进
     Dim tbl As Table
     Dim cell As cell
@@ -452,34 +474,6 @@ NextPara:
             Next para
         Next cell
     Next tbl
-
-    ' 替换全文空格：保留英文之间的空格，删除其他空格
-    ' 第一步：将英文之间的空格替换为临时标记
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .text = "([a-zA-Z]) ([a-zA-Z])"
-        .Replacement.text = "\1§TEMP§\2"
-        .MatchWildcards = True
-        .Execute Replace:=wdReplaceAll
-    End With
-    ' 第二步：删除所有剩余空格
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .text = " "
-        .Replacement.text = ""
-        .MatchWildcards = False
-        .Execute Replace:=wdReplaceAll
-    End With
-    ' 第三步：将临时标记恢复为空格
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .text = "§TEMP§"
-        .Replacement.text = " "
-        .Execute Replace:=wdReplaceAll
-    End With
 
     ' 设置页码：格式为"— 1 —"，奇数页右下角，偶数页左下角
     Dim sec As Section

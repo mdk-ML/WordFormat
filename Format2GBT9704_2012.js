@@ -25,6 +25,58 @@ function Format2GBT9704_2012() {
     // 一次性转换所有自动编号为纯文本（保留原递增编号：1.、2.、3.）
     docRange.ListFormat.ConvertNumbersToText();
 
+    // 清除全文所有段落的自动编号
+    for (var p = 1; p <= doc.Paragraphs.Count; p++) {
+        var clearPara = doc.Paragraphs.Item(p);
+        clearPara.Range.ListFormat.RemoveNumbers(wdNumberAllNumbers);
+    }
+
+    // 全文替换英文标点为中文标点
+    var findBracket1 = doc.Content.Find;
+    findBracket1.ClearFormatting();
+    findBracket1.Replacement.ClearFormatting();
+    findBracket1.Text = "(";
+    findBracket1.Replacement.Text = "（";
+    findBracket1.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findBracket2 = doc.Content.Find;
+    findBracket2.ClearFormatting();
+    findBracket2.Replacement.ClearFormatting();
+    findBracket2.Text = ")";
+    findBracket2.Replacement.Text = "）";
+    findBracket2.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findComma = doc.Content.Find;
+    findComma.ClearFormatting();
+    findComma.Replacement.ClearFormatting();
+    findComma.Text = ",";
+    findComma.Replacement.Text = "，";
+    findComma.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换全文空格：保留英文之间的空格，删除其他空格
+    var findSpace1 = doc.Content.Find;
+    findSpace1.ClearFormatting();
+    findSpace1.Replacement.ClearFormatting();
+    findSpace1.Text = "([a-zA-Z]) ([a-zA-Z])";
+    findSpace1.Replacement.Text = "\\1§TEMP§\\2";
+    findSpace1.MatchWildcards = true;
+    findSpace1.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findSpace2 = doc.Content.Find;
+    findSpace2.ClearFormatting();
+    findSpace2.Replacement.ClearFormatting();
+    findSpace2.Text = " ";
+    findSpace2.Replacement.Text = "";
+    findSpace2.MatchWildcards = false;
+    findSpace2.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findSpace3 = doc.Content.Find;
+    findSpace3.ClearFormatting();
+    findSpace3.Replacement.ClearFormatting();
+    findSpace3.Text = "§TEMP§";
+    findSpace3.Replacement.Text = " ";
+    findSpace3.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
     // 页面设置
     doc.PageSetup.TopMargin = Application.CentimetersToPoints(3.7);
     doc.PageSetup.BottomMargin = Application.CentimetersToPoints(3.5);
@@ -140,9 +192,9 @@ function Format2GBT9704_2012() {
     var level3Prefixes = ["1.","2.","3.","4.","5.","6.","7.","8.","9.","10.",
         "11.","12.","13.","14.","15.","16.","17.","18.","19.","20.",
         "21.","22.","23.","24.","25.","26.","27.","28.","29.","30."];
-    var level4Prefixes = ["(1)","(2)","(3)","(4)","(5)","(6)","(7)","(8)","(9)","(10)",
-        "(11)","(12)","(13)","(14)","(15)","(16)","(17)","(18)","(19)","(20)",
-        "(21)","(22)","(23)","(24)","(25)","(26)","(27)","(28)","(29)","(30)"];
+    var level4Prefixes = ["（1）","（2）","（3）","（4）","（5）","（6）","（7）","（8）","（9）","（10）",
+        "（11）","（12）","（13）","（14）","（15）","（16）","（17）","（18）","（19）","（20）",
+        "（21）","（22）","（23）","（24）","（25）","（26）","（27）","（28）","（29）","（30）"];
 
     for (var p2 = 1; p2 <= doc.Paragraphs.Count; p2++) {
         var para2 = doc.Paragraphs.Item(p2);
@@ -294,28 +346,6 @@ function Format2GBT9704_2012() {
         }
     }
 
-    // 全文替换英文标点为中文标点
-    var findBracket1 = doc.Content.Find;
-    findBracket1.ClearFormatting();
-    findBracket1.Replacement.ClearFormatting();
-    findBracket1.Text = "(";
-    findBracket1.Replacement.Text = "（";
-    findBracket1.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    var findBracket2 = doc.Content.Find;
-    findBracket2.ClearFormatting();
-    findBracket2.Replacement.ClearFormatting();
-    findBracket2.Text = ")";
-    findBracket2.Replacement.Text = "）";
-    findBracket2.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    var findComma = doc.Content.Find;
-    findComma.ClearFormatting();
-    findComma.Replacement.ClearFormatting();
-    findComma.Text = ",";
-    findComma.Replacement.Text = "，";
-    findComma.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
     // 全文加粗特定前缀（一是、二是等）
     var boldPrefixes = ["一是","二是","三是","四是","五是","六是","七是","八是","九是","十是"];
 
@@ -364,13 +394,6 @@ function Format2GBT9704_2012() {
     // 全部字体设为Times New Roman（因为此字体不包含中文，所以只会改变数字、英文的字体格式，中文字体保留原样）
     doc.Content.Font.Name = "Times New Roman";
 
-    // 清除全文所有段落的自动编号
-    for (var p3 = 1; p3 <= doc.Paragraphs.Count; p3++) {
-        var finalPara = doc.Paragraphs.Item(p3);
-        // 强制移除该段落的任何自动编号/列表格式
-        finalPara.Range.ListFormat.RemoveNumbers(wdNumberAllNumbers);
-    }
-
     // 处理表格：取消表格中所有段落的首行缩进
     for (var t = 1; t <= doc.Tables.Count; t++) {
         var tbl = doc.Tables.Item(t);
@@ -384,33 +407,6 @@ function Format2GBT9704_2012() {
             }
         }
     }
-
-    // 替换全文空格：保留英文之间的空格，删除其他空格
-    // 第一步：将英文之间的空格替换为临时标记
-    var find3 = doc.Content.Find;
-    find3.ClearFormatting();
-    find3.Replacement.ClearFormatting();
-    find3.Text = "([a-zA-Z]) ([a-zA-Z])";
-    find3.Replacement.Text = "\\1§TEMP§\\2";
-    find3.MatchWildcards = true;
-    find3.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    // 第二步：删除所有剩余空格
-    var find4 = doc.Content.Find;
-    find4.ClearFormatting();
-    find4.Replacement.ClearFormatting();
-    find4.Text = " ";
-    find4.Replacement.Text = "";
-    find4.MatchWildcards = false;
-    find4.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    // 第三步：将临时标记恢复为空格
-    var find5 = doc.Content.Find;
-    find5.ClearFormatting();
-    find5.Replacement.ClearFormatting();
-    find5.Text = "§TEMP§";
-    find5.Replacement.Text = " ";
-    find5.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
 
     // 设置页码：格式为"— 1 —"，奇数页右下角，偶数页左下角
     // 启用奇偶页不同页眉页脚
