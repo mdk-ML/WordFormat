@@ -171,10 +171,11 @@ Sub Format2GBT9704_2012()
     level2Prefixes = Array("（一）", "（二）", "（三）", "（四）", "（五）", "（六）", "（七）", "（八）", "（九）", "（十）", "（十一）", "（十二）", "（十三）", "（十四）", "（十五）", "（十六）", "（十七）", "（十八）", "（十九）", "（二十）")
     level3Prefixes = Array("1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.", "11.", "12.", "13.", "14.", "15.", "16.", "17.", "18.", "19.", "20.", "21.", "22.", "23.", "24.", "25.", "26.", "27.", "28.", "29.", "30.")
     level4Prefixes = Array("(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(10)", "(11)", "(12)", "(13)", "(14)", "(15)", "(16)", "(17)", "(18)", "(19)", "(20)", "(21)", "(22)", "(23)", "(24)", "(25)", "(26)", "(27)", "(28)", "(29)", "(30)")
-    level4PrefixesChinese = Array("（1）", "（2）", "（3）", "（4）", "（5）", "（6）", "（7）", "（8）", "（9）", "（10）", "（11）", "（12）", "（13）", "（14）", "（15）", "（16）", "（17）", "（18）", "（19）", "（20）", "（21）", "（22）", "（23）", "（24）", "（25）", "（26）", "（27）", "（28）", "（29）", "（30）")
     
 
-    For Each para In doc.Paragraphs
+    Dim p As Long
+    For p = 1 To doc.Paragraphs.Count
+        Set para = doc.Paragraphs(p)
         text = para.Range.text
         If Len(text) <= 1 Then GoTo NextPara  ' 跳过空段落
 
@@ -221,8 +222,57 @@ Sub Format2GBT9704_2012()
             For i = 0 To UBound(level3Prefixes)
                 If Len(trimmedText) >= Len(level3Prefixes(i)) Then
                     If Left(trimmedText, Len(level3Prefixes(i))) = level3Prefixes(i) Then
-                        para.Style = wdStyleHeading3
-                        matched = True
+                        ' 检查下一段是否也是同级别前缀
+                        Dim nextParaIndex3 As Long
+                        nextParaIndex3 = p + 1
+                        Dim isConsecutive3 As Boolean
+                        isConsecutive3 = False
+                        
+                        ' 检查下一段（如果有）
+                        If nextParaIndex3 <= doc.Paragraphs.Count Then
+                            Dim nextPara3 As Paragraph
+                            Set nextPara3 = doc.Paragraphs(nextParaIndex3)
+                            Dim nextText3 As String
+                            nextText3 = nextPara3.Range.Text
+                            Dim nextTrimmed3 As String
+                            nextTrimmed3 = Left(nextText3, Len(nextText3) - 1)
+                            
+                            ' 检查下一段是否以同级别前缀开头
+                            Dim j3 As Integer
+                            For j3 = 0 To UBound(level3Prefixes)
+                                If Len(nextTrimmed3) >= Len(level3Prefixes(j3)) Then
+                                    If Left(nextTrimmed3, Len(level3Prefixes(j3))) = level3Prefixes(j3) Then
+                                        isConsecutive3 = True
+                                        Exit For
+                                    End If
+                                End If
+                            Next j3
+                        End If
+                        
+                        ' 检查上一段（如果下一段不是同级别前缀）
+                        If Not isConsecutive3 And p > 1 Then
+                            Dim prevPara3 As Paragraph
+                            Set prevPara3 = doc.Paragraphs(p - 1)
+                            Dim prevText3 As String
+                            prevText3 = prevPara3.Range.Text
+                            Dim prevTrimmed3 As String
+                            prevTrimmed3 = Left(prevText3, Len(prevText3) - 1)
+                            
+                            For j3 = 0 To UBound(level3Prefixes)
+                                If Len(prevTrimmed3) >= Len(level3Prefixes(j3)) Then
+                                    If Left(prevTrimmed3, Len(level3Prefixes(j3))) = level3Prefixes(j3) Then
+                                        isConsecutive3 = True
+                                        Exit For
+                                    End If
+                                End If
+                            Next j3
+                        End If
+                        
+                        ' 只有不连续时才判定为标题
+                        If Not isConsecutive3 Then
+                            para.Style = wdStyleHeading3
+                            matched = True
+                        End If
                         Exit For
                     End If
                 End If
@@ -234,12 +284,57 @@ Sub Format2GBT9704_2012()
             For i = 0 To UBound(level4Prefixes)
                 If Len(trimmedText) >= Len(level4Prefixes(i)) Then
                     If Left(trimmedText, Len(level4Prefixes(i))) = level4Prefixes(i) Then
-                        para.Style = wdStyleHeading4
-                        Dim replaceRange As Range
-                        Set replaceRange = para.Range
-                        replaceRange.End = replaceRange.End - 1
-                        replaceRange.Text = level4PrefixesChinese(i) & Mid(trimmedText, Len(level4Prefixes(i)) + 1)
-                        matched = True
+                        ' 检查下一段是否也是同级别前缀
+                        Dim nextParaIndex4 As Long
+                        nextParaIndex4 = p + 1
+                        Dim isConsecutive4 As Boolean
+                        isConsecutive4 = False
+                        
+                        ' 检查下一段（如果有）
+                        If nextParaIndex4 <= doc.Paragraphs.Count Then
+                            Dim nextPara4 As Paragraph
+                            Set nextPara4 = doc.Paragraphs(nextParaIndex4)
+                            Dim nextText4 As String
+                            nextText4 = nextPara4.Range.Text
+                            Dim nextTrimmed4 As String
+                            nextTrimmed4 = Left(nextText4, Len(nextText4) - 1)
+                            
+                            ' 检查下一段是否以同级别前缀开头
+                            Dim j4 As Integer
+                            For j4 = 0 To UBound(level4Prefixes)
+                                If Len(nextTrimmed4) >= Len(level4Prefixes(j4)) Then
+                                    If Left(nextTrimmed4, Len(level4Prefixes(j4))) = level4Prefixes(j4) Then
+                                        isConsecutive4 = True
+                                        Exit For
+                                    End If
+                                End If
+                            Next j4
+                        End If
+                        
+                        ' 检查上一段（如果下一段不是同级别前缀）
+                        If Not isConsecutive4 And p > 1 Then
+                            Dim prevPara4 As Paragraph
+                            Set prevPara4 = doc.Paragraphs(p - 1)
+                            Dim prevText4 As String
+                            prevText4 = prevPara4.Range.Text
+                            Dim prevTrimmed4 As String
+                            prevTrimmed4 = Left(prevText4, Len(prevText4) - 1)
+                            
+                            For j4 = 0 To UBound(level4Prefixes)
+                                If Len(prevTrimmed4) >= Len(level4Prefixes(j4)) Then
+                                    If Left(prevTrimmed4, Len(level4Prefixes(j4))) = level4Prefixes(j4) Then
+                                        isConsecutive4 = True
+                                        Exit For
+                                    End If
+                                End If
+                            Next j4
+                        End If
+                        
+                        ' 只有不连续时才判定为标题
+                        If Not isConsecutive4 Then
+                            para.Style = wdStyleHeading4
+                            matched = True
+                        End If
                         Exit For
                     End If
                 End If
@@ -252,7 +347,32 @@ Sub Format2GBT9704_2012()
         End If
 
 NextPara:
-    Next para
+    Next p
+
+    ' 全文替换英文标点为中文标点
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = "("
+        .Replacement.Text = "（"
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ")"
+        .Replacement.Text = "）"
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ","
+        .Replacement.Text = "，"
+        .Execute Replace:=wdReplaceAll
+    End With
 
     ' 全文加粗特定前缀（一是、二是等）
     Dim boldPrefixes As Variant

@@ -143,9 +143,6 @@ function Format2GBT9704_2012() {
     var level4Prefixes = ["(1)","(2)","(3)","(4)","(5)","(6)","(7)","(8)","(9)","(10)",
         "(11)","(12)","(13)","(14)","(15)","(16)","(17)","(18)","(19)","(20)",
         "(21)","(22)","(23)","(24)","(25)","(26)","(27)","(28)","(29)","(30)"];
-    var level4PrefixesChinese = ["（1）","（2）","（3）","（4）","（5）","（6）","（7）","（8）","（9）","（10）",
-        "（11）","（12）","（13）","（14）","（15）","（16）","（17）","（18）","（19）","（20）",
-        "（21）","（22）","（23）","（24）","（25）","（26）","（27）","（28）","（29）","（30）"];
 
     for (var p2 = 1; p2 <= doc.Paragraphs.Count; p2++) {
         var para2 = doc.Paragraphs.Item(p2);
@@ -192,8 +189,47 @@ function Format2GBT9704_2012() {
             for (var i = 0; i < level3Prefixes.length; i++) {
                 if (trimmedText.length >= level3Prefixes[i].length) {
                     if (trimmedText.slice(0, level3Prefixes[i].length) === level3Prefixes[i]) {
-                        para2.Style = wdStyleHeading3;
-                        matched = true;
+                        // 检查下一段是否也是同级别前缀
+                        var isConsecutive3 = false;
+                        var nextIndex3 = p2 + 1;
+                        
+                        // 检查下一段（如果有）
+                        if (nextIndex3 <= doc.Paragraphs.Count) {
+                            var nextPara3 = doc.Paragraphs.Item(nextIndex3);
+                            var nextText3 = nextPara3.Range.Text;
+                            var nextTrimmed3 = nextText3.slice(0, -1);
+                            
+                            for (var j3 = 0; j3 < level3Prefixes.length; j3++) {
+                                if (nextTrimmed3.length >= level3Prefixes[j3].length) {
+                                    if (nextTrimmed3.slice(0, level3Prefixes[j3].length) === level3Prefixes[j3]) {
+                                        isConsecutive3 = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 检查上一段（如果下一段不是同级别前缀）
+                        if (!isConsecutive3 && p2 > 1) {
+                            var prevPara3 = doc.Paragraphs.Item(p2 - 1);
+                            var prevText3 = prevPara3.Range.Text;
+                            var prevTrimmed3 = prevText3.slice(0, -1);
+                            
+                            for (var j3 = 0; j3 < level3Prefixes.length; j3++) {
+                                if (prevTrimmed3.length >= level3Prefixes[j3].length) {
+                                    if (prevTrimmed3.slice(0, level3Prefixes[j3].length) === level3Prefixes[j3]) {
+                                        isConsecutive3 = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 只有不连续时才判定为标题
+                        if (!isConsecutive3) {
+                            para2.Style = wdStyleHeading3;
+                            matched = true;
+                        }
                         break;
                     }
                 }
@@ -205,11 +241,47 @@ function Format2GBT9704_2012() {
             for (var i = 0; i < level4Prefixes.length; i++) {
                 if (trimmedText.length >= level4Prefixes[i].length) {
                     if (trimmedText.slice(0, level4Prefixes[i].length) === level4Prefixes[i]) {
-                        para2.Style = wdStyleHeading4;
-                        var replaceRange = para2.Range;
-                        replaceRange.End = replaceRange.End - 1;
-                        replaceRange.Text = level4PrefixesChinese[i] + trimmedText.slice(level4Prefixes[i].length);
-                        matched = true;
+                        // 检查下一段是否也是同级别前缀
+                        var isConsecutive4 = false;
+                        var nextIndex4 = p2 + 1;
+                        
+                        // 检查下一段（如果有）
+                        if (nextIndex4 <= doc.Paragraphs.Count) {
+                            var nextPara4 = doc.Paragraphs.Item(nextIndex4);
+                            var nextText4 = nextPara4.Range.Text;
+                            var nextTrimmed4 = nextText4.slice(0, -1);
+                            
+                            for (var j4 = 0; j4 < level4Prefixes.length; j4++) {
+                                if (nextTrimmed4.length >= level4Prefixes[j4].length) {
+                                    if (nextTrimmed4.slice(0, level4Prefixes[j4].length) === level4Prefixes[j4]) {
+                                        isConsecutive4 = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 检查上一段（如果下一段不是同级别前缀）
+                        if (!isConsecutive4 && p2 > 1) {
+                            var prevPara4 = doc.Paragraphs.Item(p2 - 1);
+                            var prevText4 = prevPara4.Range.Text;
+                            var prevTrimmed4 = prevText4.slice(0, -1);
+                            
+                            for (var j4 = 0; j4 < level4Prefixes.length; j4++) {
+                                if (prevTrimmed4.length >= level4Prefixes[j4].length) {
+                                    if (prevTrimmed4.slice(0, level4Prefixes[j4].length) === level4Prefixes[j4]) {
+                                        isConsecutive4 = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 只有不连续时才判定为标题
+                        if (!isConsecutive4) {
+                            para2.Style = wdStyleHeading4;
+                            matched = true;
+                        }
                         break;
                     }
                 }
@@ -221,6 +293,28 @@ function Format2GBT9704_2012() {
             para2.Style = wdStyleNormal;
         }
     }
+
+    // 全文替换英文标点为中文标点
+    var findBracket1 = doc.Content.Find;
+    findBracket1.ClearFormatting();
+    findBracket1.Replacement.ClearFormatting();
+    findBracket1.Text = "(";
+    findBracket1.Replacement.Text = "（";
+    findBracket1.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findBracket2 = doc.Content.Find;
+    findBracket2.ClearFormatting();
+    findBracket2.Replacement.ClearFormatting();
+    findBracket2.Text = ")";
+    findBracket2.Replacement.Text = "）";
+    findBracket2.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findComma = doc.Content.Find;
+    findComma.ClearFormatting();
+    findComma.Replacement.ClearFormatting();
+    findComma.Text = ",";
+    findComma.Replacement.Text = "，";
+    findComma.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
 
     // 全文加粗特定前缀（一是、二是等）
     var boldPrefixes = ["一是","二是","三是","四是","五是","六是","七是","八是","九是","十是"];
