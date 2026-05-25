@@ -441,19 +441,47 @@ NextPara:
             .Font.Bold = False
         End With
 
-        ' 在标题后插入一个空段落（即“空一行”）
-        Dim nextRange As Range
-        Set nextRange = firstPara.Range.Duplicate
-        nextRange.Collapse Direction:=wdCollapseEnd
-        nextRange.InsertParagraphAfter  ' 插入一个空段落
+        ' 在标题后插入一个空段落（即"空一行"）
+        ' 先检查标题后是否已经有空段落
+        ' 找到firstPara的索引
+        Dim firstParaIndex As Long
+        firstParaIndex = 0
+        Dim findIdx As Long
+        For findIdx = 1 To doc.Paragraphs.Count
+            If doc.Paragraphs(findIdx).Range.Start = firstPara.Range.Start Then
+                firstParaIndex = findIdx
+                Exit For
+            End If
+        Next findIdx
+        
+        Dim needInsert As Boolean
+        needInsert = True
+        
+        If firstParaIndex > 0 And firstParaIndex < doc.Paragraphs.Count Then
+            Dim checkPara As Paragraph
+            Set checkPara = doc.Paragraphs(firstParaIndex + 1)
+            ' 检查下一段是否为空段落（只有段落标记或空白）
+            If Len(Trim(checkPara.Range.Text)) <= 1 Then
+                needInsert = False
+            End If
+        End If
+        
+        ' 只有标题后没有空段落时才插入
+        If needInsert Then
+            Dim nextRange As Range
+            Set nextRange = firstPara.Range.Duplicate
+            nextRange.Collapse Direction:=wdCollapseEnd
+            nextRange.InsertParagraphAfter  ' 插入一个空段落
 
-        ' 可选：确保这个空段落是 Normal 样式（符合正文规范）
-        Dim emptyPara As Paragraph
-        Set emptyPara = nextRange.Paragraphs(1)
-        emptyPara.Style = wdStyleNormal
-        ' 清除可能的直接格式
-        emptyPara.Range.Font.Reset
+            ' 可选：确保这个空段落是 Normal 样式（符合正文规范）
+            Dim emptyPara As Paragraph
+            Set emptyPara = nextRange.Paragraphs(1)
+            emptyPara.Style = wdStyleNormal
+            ' 清除可能的直接格式
+            emptyPara.Range.Font.Reset
+        End If
     End If
+
 
     ' 全部字体设为Times New Roman（因为此字体不包含中文，所以只会改变数字、英文的字体格式，中文字体保留原样）
     With doc.Range

@@ -380,15 +380,38 @@ function Format2GBT9704_2012() {
         firstPara.Range.Font.Bold = false;
 
         // 在标题后插入一个空段落（即"空一行"）
-        var nextRange = firstPara.Range.Duplicate;
-        nextRange.Collapse(wdCollapseEnd);
-        nextRange.InsertParagraphAfter();  // 插入一个空段落
+        // 先检查标题后是否已经有空段落
+        // 找到firstPara的索引
+        var firstParaIndex = 0;
+        for (var findIdx = 1; findIdx <= doc.Paragraphs.Count; findIdx++) {
+            if (doc.Paragraphs.Item(findIdx).Range.Start === firstPara.Range.Start) {
+                firstParaIndex = findIdx;
+                break;
+            }
+        }
+        
+        var needInsert = true;
+        
+        if (firstParaIndex > 0 && firstParaIndex < doc.Paragraphs.Count) {
+            var checkPara = doc.Paragraphs.Item(firstParaIndex + 1);
+            // 检查下一段是否为空段落（只有段落标记或空白）
+            if (checkPara.Range.Text.trim().length <= 1) {
+                needInsert = false;
+            }
+        }
+        
+        // 只有标题后没有空段落时才插入
+        if (needInsert) {
+            var nextRange = firstPara.Range.Duplicate;
+            nextRange.Collapse(wdCollapseEnd);
+            nextRange.InsertParagraphAfter();  // 插入一个空段落
 
-        // 可选：确保这个空段落是 Normal 样式（符合正文规范）
-        var emptyPara = nextRange.Paragraphs.Item(1);
-        emptyPara.Style = wdStyleNormal;
-        // 清除可能的直接格式
-        emptyPara.Range.Font.Reset();
+            // 可选：确保这个空段落是 Normal 样式（符合正文规范）
+            var emptyPara = nextRange.Paragraphs.Item(1);
+            emptyPara.Style = wdStyleNormal;
+            // 清除可能的直接格式
+            emptyPara.Range.Font.Reset();
+        }
     }
 
     // 全部字体设为Times New Roman（因为此字体不包含中文，所以只会改变数字、英文的字体格式，中文字体保留原样）
