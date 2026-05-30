@@ -31,28 +31,6 @@ function Format2GBT9704_2012() {
         clearPara.Range.ListFormat.RemoveNumbers(wdNumberAllNumbers);
     }
 
-    // 全文替换英文标点为中文标点
-    var findBracket1 = doc.Content.Find;
-    findBracket1.ClearFormatting();
-    findBracket1.Replacement.ClearFormatting();
-    findBracket1.Text = "(";
-    findBracket1.Replacement.Text = "（";
-    findBracket1.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    var findBracket2 = doc.Content.Find;
-    findBracket2.ClearFormatting();
-    findBracket2.Replacement.ClearFormatting();
-    findBracket2.Text = ")";
-    findBracket2.Replacement.Text = "）";
-    findBracket2.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    var findComma = doc.Content.Find;
-    findComma.ClearFormatting();
-    findComma.Replacement.ClearFormatting();
-    findComma.Text = ",";
-    findComma.Replacement.Text = "，";
-    findComma.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
     // 替换全文空格：保留英文之间的空格，删除其他空格
     var findSpace1 = doc.Content.Find;
     findSpace1.ClearFormatting();
@@ -76,6 +54,111 @@ function Format2GBT9704_2012() {
     findSpace3.Text = "§TEMP§";
     findSpace3.Replacement.Text = " ";
     findSpace3.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 全文替换英文标点为中文标点
+    // 替换括号
+    var findBracket1 = doc.Content.Find;
+    findBracket1.ClearFormatting();
+    findBracket1.Replacement.ClearFormatting();
+    findBracket1.Text = "(";
+    findBracket1.Replacement.Text = "（";
+    findBracket1.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    var findBracket2 = doc.Content.Find;
+    findBracket2.ClearFormatting();
+    findBracket2.Replacement.ClearFormatting();
+    findBracket2.Text = ")";
+    findBracket2.Replacement.Text = "）";
+    findBracket2.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换逗号
+    var findComma = doc.Content.Find;
+    findComma.ClearFormatting();
+    findComma.Replacement.ClearFormatting();
+    findComma.Text = ",";
+    findComma.Replacement.Text = "，";
+    findComma.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换冒号
+    var findColon = doc.Content.Find;
+    findColon.ClearFormatting();
+    findColon.Replacement.ClearFormatting();
+    findColon.Text = ":";
+    findColon.Replacement.Text = "：";
+    findColon.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换问号
+    var findQuestion = doc.Content.Find;
+    findQuestion.ClearFormatting();
+    findQuestion.Replacement.ClearFormatting();
+    findQuestion.Text = "?";
+    findQuestion.Replacement.Text = "？";
+    findQuestion.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换分号
+    var findSemicolon = doc.Content.Find;
+    findSemicolon.ClearFormatting();
+    findSemicolon.Replacement.ClearFormatting();
+    findSemicolon.Text = ";";
+    findSemicolon.Replacement.Text = "；";
+    findSemicolon.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换句号（只替换前后都没有数字的句号）
+    // 情况1：前后都有非数字字符
+    var findDot = doc.Content.Find;
+    findDot.ClearFormatting();
+    findDot.Replacement.ClearFormatting();
+    findDot.Text = "([!0-9]).([!0-9])";
+    findDot.Replacement.Text = "\\1。\\2";
+    findDot.MatchWildcards = true;
+    findDot.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 情况2：句号在段落末尾（前方不是数字）
+    var findDotEnd = doc.Content.Find;
+    findDotEnd.ClearFormatting();
+    findDotEnd.Replacement.ClearFormatting();
+    findDotEnd.Text = "([!0-9]).\\r";
+    findDotEnd.Replacement.Text = "\\1。\\r";
+    findDotEnd.MatchWildcards = true;
+    findDotEnd.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
+
+    // 替换双引号（区分左右）
+    var rngDouble = doc.Content;
+    var isFirstDouble = true;
+
+    // 遍历替换双引号
+    var findDouble = rngDouble.Find;
+    findDouble.Text = "\"";
+    findDouble.Forward = true;
+    findDouble.Wrap = wdFindStop;
+    while (findDouble.Execute()) {
+        if (isFirstDouble) {
+            rngDouble.Text = "“";  // 左双引号 "
+        } else {
+            rngDouble.Text = "”";  // 右双引号 "
+        }
+        isFirstDouble = !isFirstDouble;
+        rngDouble.Collapse(wdCollapseEnd);
+    }
+
+    // 替换单引号（区分左右）
+    var rngSingle = doc.Content;
+    var isFirstSingle = true;
+
+    // 遍历替换单引号
+    var findSingle = rngSingle.Find;
+    findSingle.Text = "'";
+    findSingle.Forward = true;
+    findSingle.Wrap = wdFindStop;
+    while (findSingle.Execute()) {
+        if (isFirstSingle) {
+            rngSingle.Text = "‘";  // 左单引号 '
+        } else {
+            rngSingle.Text = "’";  // 右单引号 '
+        }
+        isFirstSingle = !isFirstSingle;
+        rngSingle.Collapse(wdCollapseEnd);
+    }
 
     // 页面设置
     doc.PageSetup.TopMargin = Application.CentimetersToPoints(3.7);

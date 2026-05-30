@@ -33,29 +33,6 @@ Sub Format2GBT9704_2012()
         clearPara.Range.ListFormat.RemoveNumbers NumberType:=wdNumberAllNumbers
     Next clearPara
 
-    ' 全文替换英文标点为中文标点
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = "("
-        .Replacement.Text = "（"
-        .Execute Replace:=wdReplaceAll
-    End With
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = ")"
-        .Replacement.Text = "）"
-        .Execute Replace:=wdReplaceAll
-    End With
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = ","
-        .Replacement.Text = "，"
-        .Execute Replace:=wdReplaceAll
-    End With
-
     ' 替换全文空格：保留英文之间的空格，删除其他空格
     With doc.Content.Find
         .ClearFormatting
@@ -79,6 +56,122 @@ Sub Format2GBT9704_2012()
         .text = "§TEMP§"
         .Replacement.text = " "
         .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 全文替换英文标点为中文标点
+    ' 替换括号
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = "("
+        .Replacement.Text = "（"
+        .Execute Replace:=wdReplaceAll
+    End With
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ")"
+        .Replacement.Text = "）"
+        .Execute Replace:=wdReplaceAll
+    End With
+    ' 替换逗号
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ","
+        .Replacement.Text = "，"
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 替换冒号
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ":"
+        .Replacement.Text = "："
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 替换问号
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = "?"
+        .Replacement.Text = "？"
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 替换分号
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = ";"
+        .Replacement.Text = "；"
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 替换句号（只替换前后都没有数字的句号）
+    ' 情况1：前后都有非数字字符
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = "([!0-9]).([!0-9])"
+        .Replacement.Text = "\1。\2"
+        .MatchWildcards = True
+        .Execute Replace:=wdReplaceAll
+    End With
+    ' 情况2：句号在段落末尾（前方不是数字）
+    With doc.Content.Find
+        .ClearFormatting
+        .Replacement.ClearFormatting
+        .Text = "([!0-9]).^13"
+        .Replacement.Text = "\1。^13"
+        .MatchWildcards = True
+        .Execute Replace:=wdReplaceAll
+    End With
+
+    ' 替换双引号（区分左右）
+    Dim rngDouble As Range
+    Set rngDouble = doc.Content
+    Dim isFirstDouble As Boolean
+    isFirstDouble = True
+
+    ' 遍历替换双引号
+    With rngDouble.Find
+        .Text = """"
+        .Forward = True
+        .Wrap = wdFindStop
+        Do While .Execute
+            If isFirstDouble Then
+                rngDouble.Text = "“"  ' 左双引号 "
+            Else
+                rngDouble.Text = "”"  ' 右双引号 "
+            End If
+            isFirstDouble = Not isFirstDouble
+            rngDouble.Collapse wdCollapseEnd
+        Loop
+    End With
+
+    ' 替换单引号（区分左右）
+    Dim rngSingle As Range
+    Set rngSingle = doc.Content
+    Dim isFirstSingle As Boolean
+    isFirstSingle = True
+
+    ' 遍历替换单引号
+    With rngSingle.Find
+        .Text = "'"
+        .Forward = True
+        .Wrap = wdFindStop
+        Do While .Execute
+            If isFirstSingle Then
+                rngSingle.Text = "‘"  ' 左单引号 '
+            Else
+                rngSingle.Text = "’"  ' 右单引号 '
+            End If
+            isFirstSingle = Not isFirstSingle
+            rngSingle.Collapse wdCollapseEnd
+        Loop
     End With
 
     ' 页面设置
