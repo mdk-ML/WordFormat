@@ -163,8 +163,8 @@ function Format2GBT9704_2012() {
     // 页面设置
     doc.PageSetup.TopMargin = Application.CentimetersToPoints(3.7);
     doc.PageSetup.BottomMargin = Application.CentimetersToPoints(3.5);
-    doc.PageSetup.LeftMargin = Application.CentimetersToPoints(2.7);
-    doc.PageSetup.RightMargin = Application.CentimetersToPoints(2.7);
+    doc.PageSetup.LeftMargin = Application.CentimetersToPoints(2.8);
+    doc.PageSetup.RightMargin = Application.CentimetersToPoints(2.6);
 
     // 定义字号
     var FontSize_Normal = 16;   // 三号 = 16 磅

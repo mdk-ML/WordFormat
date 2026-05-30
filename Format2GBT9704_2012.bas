@@ -178,8 +178,8 @@ Sub Format2GBT9704_2012()
     With doc.PageSetup
         .TopMargin = CentimetersToPoints(3.7)
         .BottomMargin = CentimetersToPoints(3.5)
-        .LeftMargin = CentimetersToPoints(2.7)
-        .RightMargin = CentimetersToPoints(2.7)
+        .LeftMargin = CentimetersToPoints(2.8)
+        .RightMargin = CentimetersToPoints(2.6)
     End With
 
     ' 定义字号
