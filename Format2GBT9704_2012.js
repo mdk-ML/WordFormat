@@ -113,13 +113,13 @@ function Format2GBT9704_2012() {
     findDot.MatchWildcards = true;
     findDot.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
 
-    // 情况2：句号在段落末尾（前方不是数字）
+    // 情况2：句号在段落末尾（直接替换，不判断前方内容）
     var findDotEnd = doc.Content.Find;
     findDotEnd.ClearFormatting();
     findDotEnd.Replacement.ClearFormatting();
-    findDotEnd.Text = "([!0-9]).\\r";
-    findDotEnd.Replacement.Text = "\\1。\\r";
-    findDotEnd.MatchWildcards = true;
+    findDotEnd.Text = ".^p";
+    findDotEnd.Replacement.Text = "。^p";
+    findDotEnd.MatchWildcards = false;
     findDotEnd.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
 
     // 替换双引号（区分左右）

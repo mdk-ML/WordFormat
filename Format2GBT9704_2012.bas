@@ -120,12 +120,12 @@ Sub Format2GBT9704_2012()
         .MatchWildcards = True
         .Execute Replace:=wdReplaceAll
     End With
-    ' 情况2：句号在段落末尾（前方不是数字）
+    ' 情况2：句号在段落末尾（直接替换，不判断前方内容）
     With doc.Content.Find
         .ClearFormatting
         .Replacement.ClearFormatting
-        .Text = "([!0-9]).^13"
-        .Replacement.Text = "\1。^13"
+        .Text = ".^13"
+        .Replacement.Text = "。^13"
         .MatchWildcards = True
         .Execute Replace:=wdReplaceAll
     End With
