@@ -103,25 +103,6 @@ function Format2GBT9704_2012() {
     findSemicolon.Replacement.Text = "；";
     findSemicolon.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
 
-    // 替换句号（只替换前后都没有数字的句号）
-    // 情况1：前后都有非数字字符
-    var findDot = doc.Content.Find;
-    findDot.ClearFormatting();
-    findDot.Replacement.ClearFormatting();
-    findDot.Text = "([!0-9]).([!0-9])";
-    findDot.Replacement.Text = "\\1。\\2";
-    findDot.MatchWildcards = true;
-    findDot.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
-    // 情况2：句号在段落末尾（直接替换，不判断前方内容）
-    var findDotEnd = doc.Content.Find;
-    findDotEnd.ClearFormatting();
-    findDotEnd.Replacement.ClearFormatting();
-    findDotEnd.Text = ".^p";
-    findDotEnd.Replacement.Text = "。^p";
-    findDotEnd.MatchWildcards = false;
-    findDotEnd.Execute(null, null, null, null, null, null, null, null, null, null, wdReplaceAll);
-
     // 替换双引号（区分左右）
     var rngDouble = doc.Content;
     var isFirstDouble = true;

@@ -110,26 +110,6 @@ Sub Format2GBT9704_2012()
         .Execute Replace:=wdReplaceAll
     End With
 
-    ' 替换句号（只替换前后都没有数字的句号）
-    ' 情况1：前后都有非数字字符
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = "([!0-9]).([!0-9])"
-        .Replacement.Text = "\1。\2"
-        .MatchWildcards = True
-        .Execute Replace:=wdReplaceAll
-    End With
-    ' 情况2：句号在段落末尾（直接替换，不判断前方内容）
-    With doc.Content.Find
-        .ClearFormatting
-        .Replacement.ClearFormatting
-        .Text = ".^13"
-        .Replacement.Text = "。^13"
-        .MatchWildcards = True
-        .Execute Replace:=wdReplaceAll
-    End With
-
     ' 替换双引号（区分左右）
     Dim rngDouble As Range
     Set rngDouble = doc.Content
