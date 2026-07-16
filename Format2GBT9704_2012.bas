@@ -499,11 +499,11 @@ NextPara:
     Next boldPrefix
 
     ' 格式化第一段为公文标题（方正小标宋简体 二号 居中）
-    Dim firstPara As Paragraph
-    Set firstPara = FindFirstNonEmptyParagraph(doc)
+    Dim titleRange As Range
+    Set titleRange = FindFirstNonEmptyRange(doc)
 
-    If Not firstPara Is Nothing Then
-        With firstPara.Range
+    If Not titleRange Is Nothing Then
+        With titleRange
             .Font.Name = "方正小标宋简体"
             .Font.Size = FontSize_Title1
             .ParagraphFormat.Alignment = wdAlignParagraphCenter
@@ -511,30 +511,23 @@ NextPara:
             .ParagraphFormat.SpaceBefore = 0
             .ParagraphFormat.LineSpacingRule = wdLineSpaceExactly
             .ParagraphFormat.LineSpacing = 28
+            .ParagraphFormat.FirstLineIndent = 0
             .Font.Bold = False
         End With
 
         ' 在标题后插入一个空段落（即"空一行"）
-        ' 先检查标题后是否已经有空段落
-        ' 找到firstPara的索引
-        Dim firstParaIndex As Long
-        firstParaIndex = 0
-        Dim findIdx As Long
-        For findIdx = 1 To doc.Paragraphs.Count
-            If doc.Paragraphs(findIdx).Range.Start = firstPara.Range.Start Then
-                firstParaIndex = findIdx
-                Exit For
-            End If
-        Next findIdx
-        
+        ' 检查标题范围是否以空行结尾
         Dim needInsert As Boolean
         needInsert = True
         
-        If firstParaIndex > 0 And firstParaIndex < doc.Paragraphs.Count Then
-            Dim checkPara As Paragraph
-            Set checkPara = doc.Paragraphs(firstParaIndex + 1)
+        ' 获取 titleRange 之后的下一个段落
+        Dim afterRange As Range
+        Set afterRange = doc.Range(titleRange.End, doc.Range.End)
+        If afterRange.Paragraphs.Count > 0 Then
+            Dim nextPara As Paragraph
+            Set nextPara = afterRange.Paragraphs(1)
             ' 检查下一段是否为空段落（只有段落标记或空白）
-            If Len(Trim(checkPara.Range.Text)) <= 1 Then
+            If Len(Trim(nextPara.Range.Text)) <= 1 Then
                 needInsert = False
             End If
         End If
@@ -542,7 +535,7 @@ NextPara:
         ' 只有标题后没有空段落时才插入
         If needInsert Then
             Dim nextRange As Range
-            Set nextRange = firstPara.Range.Duplicate
+            Set nextRange = titleRange.Duplicate
             nextRange.Collapse Direction:=wdCollapseEnd
             nextRange.InsertParagraphAfter  ' 插入一个空段落
 
@@ -619,16 +612,40 @@ NextPara:
     MsgBox "文档已按照GB/T 9704-2012格式化完成。", vbInformation
 End Sub
 
-' 辅助函数：查找第一个非空段落
-Function FindFirstNonEmptyParagraph(doc As Document) As Paragraph
+' 辅助函数：查找第一个非空段落范围（从第一个非空段落到遇到空白段落之前的所有连续段落，最多5个段落）
+Function FindFirstNonEmptyRange(doc As Document) As Range
+    Dim startPara As Paragraph
+    Dim lastNonEmptyPara As Paragraph
     Dim para As Paragraph
+    Dim paraCount As Integer
+    
+    paraCount = 0
+    
     For Each para In doc.Paragraphs
         If Len(Trim(para.Range.text)) > 1 Then
-            Set FindFirstNonEmptyParagraph = para
-            Exit Function
+            If startPara Is Nothing Then
+                Set startPara = para
+            End If
+            paraCount = paraCount + 1
+            If paraCount <= 5 Then
+                Set lastNonEmptyPara = para
+            End If
+        Else
+            ' 遇到空白段落，且已经找到了起始段落
+            If Not startPara Is Nothing Then
+                Exit For
+            End If
         End If
     Next para
-    Set FindFirstNonEmptyParagraph = Nothing
+    
+    If startPara Is Nothing Then
+        Set FindFirstNonEmptyRange = Nothing
+    ElseIf paraCount > 5 Then
+        ' 超过5个段落，只返回第一个段落
+        Set FindFirstNonEmptyRange = startPara.Range
+    Else
+        Set FindFirstNonEmptyRange = doc.Range(startPara.Range.Start, lastNonEmptyPara.Range.End)
+    End If
 End Function
 
 ' 辅助函数：2字符缩进（32磅）

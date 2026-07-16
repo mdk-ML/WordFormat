@@ -431,42 +431,36 @@ function Format2GBT9704_2012() {
     }
 
     // 格式化第一段为公文标题（方正小标宋简体 二号 居中）
-    var firstPara = FindFirstNonEmptyParagraph(doc);
+    var titleRange = FindFirstNonEmptyRange(doc);
 
-    if (firstPara !== null) {
-        firstPara.Range.Font.Name = "方正小标宋简体";
-        firstPara.Range.Font.Size = FontSize_Title1;
-        firstPara.Range.ParagraphFormat.Alignment = wdAlignParagraphCenter;
-        firstPara.Range.ParagraphFormat.SpaceAfter = 0;
-        firstPara.Range.ParagraphFormat.SpaceBefore = 0;
-        firstPara.Range.ParagraphFormat.LineSpacingRule = wdLineSpaceExactly;
-        firstPara.Range.ParagraphFormat.LineSpacing = 28;
-        firstPara.Range.Font.Bold = false;
+    if (titleRange !== null) {
+        titleRange.Font.Name = "方正小标宋简体";
+        titleRange.Font.Size = FontSize_Title1;
+        titleRange.ParagraphFormat.Alignment = wdAlignParagraphCenter;
+        titleRange.ParagraphFormat.SpaceAfter = 0;
+        titleRange.ParagraphFormat.SpaceBefore = 0;
+        titleRange.ParagraphFormat.LineSpacingRule = wdLineSpaceExactly;
+        titleRange.ParagraphFormat.LineSpacing = 28;
+        titleRange.ParagraphFormat.FirstLineIndent = 0;
+        titleRange.Font.Bold = false;
 
         // 在标题后插入一个空段落（即"空一行"）
-        // 先检查标题后是否已经有空段落
-        // 找到firstPara的索引
-        var firstParaIndex = 0;
-        for (var findIdx = 1; findIdx <= doc.Paragraphs.Count; findIdx++) {
-            if (doc.Paragraphs.Item(findIdx).Range.Start === firstPara.Range.Start) {
-                firstParaIndex = findIdx;
-                break;
-            }
-        }
-        
+        // 检查标题范围是否以空行结尾
         var needInsert = true;
         
-        if (firstParaIndex > 0 && firstParaIndex < doc.Paragraphs.Count) {
-            var checkPara = doc.Paragraphs.Item(firstParaIndex + 1);
+        // 获取 titleRange 之后的下一个段落
+        var afterRange = doc.Range(titleRange.End, doc.Range.End);
+        if (afterRange.Paragraphs.Count > 0) {
+            var nextPara = afterRange.Paragraphs.Item(1);
             // 检查下一段是否为空段落（只有段落标记或空白）
-            if (checkPara.Range.Text.trim().length <= 1) {
+            if (nextPara.Range.Text.trim().length <= 1) {
                 needInsert = false;
             }
         }
         
         // 只有标题后没有空段落时才插入
         if (needInsert) {
-            var nextRange = firstPara.Range.Duplicate;
+            var nextRange = titleRange.Duplicate;
             nextRange.Collapse(wdCollapseEnd);
             nextRange.InsertParagraphAfter();  // 插入一个空段落
 
@@ -532,15 +526,34 @@ function Format2GBT9704_2012() {
     MsgBox("文档已按照GB/T 9704-2012格式化完成。", 0x40);  // vbInformation = 0x40
 }
 
-// 辅助函数：查找第一个非空段落
-function FindFirstNonEmptyParagraph(doc) {
+// 辅助函数：查找第一个非空段落范围（从第一个非空段落到遇到空白段落之前的所有连续段落，最多5个段落）
+function FindFirstNonEmptyRange(doc) {
+    var startPara = null;
+    var lastNonEmptyPara = null;
+    var paraCount = 0;
     for (var p = 1; p <= doc.Paragraphs.Count; p++) {
         var para = doc.Paragraphs.Item(p);
         if (para.Range.Text.trim().length > 1) {
-            return para;
+            if (startPara === null) {
+                startPara = para;
+            }
+            paraCount++;
+            if (paraCount <= 5) {
+                lastNonEmptyPara = para;
+            }
+        } else {
+            if (startPara !== null) {
+                break;
+            }
         }
     }
-    return null;
+    if (startPara === null) {
+        return null;
+    }
+    if (paraCount > 5) {
+        return startPara.Range;
+    }
+    return doc.Range(startPara.Range.Start, lastNonEmptyPara.Range.End);
 }
 
 // 辅助函数：2字符缩进（32磅）
