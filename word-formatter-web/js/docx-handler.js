@@ -1163,7 +1163,10 @@ class DocxHandler {
         this.zip.file('word/document.xml', newDocumentXml);
         
         // 生成新的.docx文件
-        return await this.zip.generateAsync({ type: 'blob' });
+        return await this.zip.generateAsync({ 
+            type: 'blob',
+            mimeType: mimeType || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
     }
     
     /**
