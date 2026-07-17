@@ -20,26 +20,8 @@ function replacePunctuation(text) {
     text = text.replace(/\?/g, '？');
     // 分号
     text = text.replace(/;/g, '；');
-    // 句号（智能判断）
-    text = replacePeriod(text);
     // 引号（区分左右）
     text = replaceQuotes(text);
-    return text;
-}
-
-/**
- * 智能替换句号
- * 只替换前后都没有数字的句号
- * @param {string} text - 原始文本
- * @returns {string} - 替换后的文本
- */
-function replacePeriod(text) {
-    // 前后都没有数字的句号
-    text = text.replace(/([!0-9])\.([!0-9])/g, '$1。$2');
-    // 段落末尾的句号
-    if (text.endsWith('.')) {
-        text = text.slice(0, -1) + '。';
-    }
     return text;
 }
 

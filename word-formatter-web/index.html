@@ -3,56 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word格式化工具（GB/T 9704-2012）</title>
+    <meta name="description" content="GB/T 9704-2012公文格式自动排版工具，支持Word文档批量格式化，一键设置页边距、行距、字体、标题样式等公文标准格式">
+    <meta name="keywords" content="公文格式,GB/T 9704,Word格式化,公文排版,文档格式化,党政机关公文格式">
+    <meta name="author" content="WordFormat Tool">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Word格式化工具 - GB/T 9704-2012公文格式标准">
+    <meta property="og:description" content="在线Word公文格式化工具，自动按照GB/T 9704-2012标准排版文档">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Word格式化工具 - GB/T 9704-2012公文格式标准">
+    <meta name="twitter:description" content="在线Word公文格式化工具，自动按照GB/T 9704-2012标准排版文档">
+    
+    <title>Word格式化工具 | GB/T 9704-2012 公文格式自动排版</title>
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="">
+    
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>📄 Word格式化工具</h1>
-        <p class="subtitle">GB/T 9704-2012 公文格式标准</p>
+        <header>
+            <h1>Word格式化工具</h1>
+            <p class="subtitle">GB/T 9704-2012 党政机关公文格式标准</p>
+        </header>
         
-        <div id="dropZone" class="drop-zone">
-            <div class="drop-zone-content">
-                <span class="drop-icon">📁</span>
-                <p>拖拽 .docx 文件到此处</p>
-                <p class="drop-hint">或点击选择文件</p>
-            </div>
-            <input type="file" id="fileInput" multiple accept=".docx" style="display: none;">
-        </div>
+        <main class="main-content">
+            <!-- 左侧：文件操作区域 -->
+            <section class="file-section" aria-label="文件上传和处理">
+                <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="点击或拖拽文件上传">
+                    <div class="drop-zone-content">
+                        <span class="drop-icon" aria-hidden="true">📁</span>
+                        <p>拖拽 .docx 文件到此处</p>
+                        <p class="drop-hint">或点击选择文件（支持批量上传）</p>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept=".docx" aria-label="选择Word文档">
+                </div>
+                
+                <div id="fileList" class="file-list" role="list" aria-label="已上传文件列表"></div>
+            </section>
+            
+            <!-- 右侧：独立卡片区域 -->
+            <aside class="info-section" aria-label="格式说明">
+                <div class="info-card">
+                    <h3>📋 格式标准</h3>
+                    <ul>
+                        <li><strong>页边距：</strong>上3.7cm 下3.5cm 左2.8cm 右2.6cm</li>
+                        <li><strong>行距：</strong>固定值28磅</li>
+                        <li><strong>公文标题：</strong>方正小标宋简体 二号 居中</li>
+                        <li><strong>一级标题：</strong>黑体 三号（一、二、三...）</li>
+                        <li><strong>二级标题：</strong>楷体 三号（（一）（二）（三）...）</li>
+                        <li><strong>三级标题：</strong>仿宋 三号 加粗（1.2.3...）</li>
+                        <li><strong>四级标题：</strong>仿宋 三号 加粗（（1）（2）（3）...）</li>
+                        <li><strong>正文字体：</strong>仿宋_GB2312 三号 首行缩进2字符</li>
+                        <li><strong>数字字体：</strong>Times New Roman</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>⚙️ 自动处理</h3>
+                    <ul>
+                        <li>自动删除多余空格</li>
+                        <li>英文标点自动转中文</li>
+                        <li>特定前缀（一是、二是）自动加粗</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card warning">
+                    <h3>⚠️ 注意事项</h3>
+                    <ul>
+                        <li>仅支持 .docx 格式</li>
+                        <li>请先安装所需字体</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>📥 资源下载</h3>
+                    <ul>
+                        <li><a href="../国标及字体/GBT 9704-2012公文格式.pdf" download>📕 GB/T 9704-2012公文格式</a></li>
+                        <li><a href="../国标及字体/方正小标宋简体.ttf" download>📙 方正小标宋简体</a></li>
+                        <li><a href="../国标及字体/仿宋_GB2312.ttf" download>📘 仿宋_GB2312</a></li>
+                        <li><a href="../国标及字体/楷体_GB2312.ttf" download>📒 楷体_GB2312</a></li>
+                        <li><a href="../国标及字体/黑体.ttf" download>📓 黑体</a></li>
+                        <li><a href="../国标及字体/Times New Roman.ttf" download>📗 Times New Roman</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </main>
         
-        <div class="button-group">
-            <button id="processBtn" onclick="startProcessing()" disabled>
-                🔄 开始处理
-            </button>
-            <button id="downloadBtn" onclick="downloadFiles()" disabled>
-                📥 批量下载
-            </button>
-            <button id="clearBtn" onclick="clearList()" disabled>
-                🗑️ 清空列表
-            </button>
-        </div>
-        
-        <div class="info-section">
-            <h3>📋 格式说明</h3>
-            <ul>
-                <li>页面边距：上3.7cm、下3.5cm、左2.8cm、右2.6cm</li>
-                <li>行距：固定值28磅</li>
-                <li>标题：方正小标宋简体 二号</li>
-                <li>一级标题：黑体 三号（一、二、三...）</li>
-                <li>二级标题：楷体_GB2312 三号（（一）（二）（三）...）</li>
-                <li>三级标题：仿宋_GB2312 三号 加粗（1. 2. 3....）</li>
-                <li>四级标题：仿宋_GB2312 三号 加粗（（1）（2）（3）...）</li>
-                <li>正文：仿宋_GB2312 三号</li>
-                <li>页码：宋体 四号，奇数页居右，偶数页居左</li>
-            </ul>
-        </div>
-        
-        <div id="fileList" class="file-list"></div>
-        
-        <div class="footer">
-            <p>⚠️ 使用前请确保已安装所需字体（仿宋_GB2312、楷体_GB2312、黑体、方正小标宋简体）</p>
-            <p>🔒 全程本地处理，无文档内容泄露风险</p>
-        </div>
+        <footer>
+            <p>🔒 全程本地处理，文档内容不会上传至服务器</p>
+            <p class="repo-link"><a href="https://gitee.com/mdkml/word-format" target="_blank" rel="noopener">📦 Gitee 仓库</a></p>
+        </footer>
     </div>
     
     <!-- 第三方库 -->

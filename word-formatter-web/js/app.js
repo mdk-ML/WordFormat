@@ -1,13 +1,13 @@
 /**
  * Web应用入口
  * Word格式化工具（GB/T 9704-2012）
+ * 导入文档后自动执行并自动下载
  */
 
 const formatter = new Formatter();
 
-// 文件列表
-let files = [];
-let results = [];
+// 存储已处理文件的结果（用于重新下载）
+const processedResults = {};
 
 /**
  * 初始化应用
@@ -41,6 +41,14 @@ function initApp() {
         fileInput.click();
     });
     
+    // 键盘访问
+    dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
+    
     fileInput.addEventListener('change', (e) => {
         handleFiles(e.target.files);
         // 清空input，允许重复选择同一文件
@@ -49,39 +57,50 @@ function initApp() {
 }
 
 /**
- * 处理文件
+ * 处理文件 — 逐个处理并逐个下载
  * @param {FileList} fileList - 文件列表
  */
 function handleFiles(fileList) {
     for (const file of fileList) {
         // 验证文件格式
         if (!file.name.endsWith('.docx')) {
-            addFileToList(file.name, 'error', '不支持的文件格式（仅支持.docx）');
+            addFileToList(file.name, 'error', '仅支持.docx格式');
             continue;
         }
         
-        // 验证文件大小（10MB）
-        if (file.size > 10 * 1024 * 1024) {
-            addFileToList(file.name, 'error', '文件过大（最大10MB）');
-            continue;
-        }
-        
-        // 检查是否已存在
-        if (files.some(f => f.name === file.name)) {
-            addFileToList(file.name, 'warning', '文件已存在');
-            continue;
-        }
-        
-        files.push(file);
         addFileToList(file.name, 'pending', '等待处理');
+        
+        // 立即开始处理
+        processSingleFile(file);
     }
-    
-    // 更新按钮状态
-    updateButtonStates();
 }
 
 /**
- * 添加文件到列表
+ * 处理单个文件并自动下载
+ * @param {File} file - 文件对象
+ */
+async function processSingleFile(file) {
+    updateFileStatus(file.name, 'processing', '处理中...');
+    
+    try {
+        const blob = await formatter.format(file);
+        const filename = file.name.replace('.docx', '已格式化.docx');
+        
+        // 保存结果以便重新下载
+        processedResults[file.name] = { blob, filename };
+        
+        updateFileStatus(file.name, 'success', '处理完成');
+        
+        // 自动下载
+        saveAs(blob, filename);
+    } catch (error) {
+        console.error(`处理失败: ${file.name}`, error);
+        updateFileStatus(file.name, 'error', '处理失败');
+    }
+}
+
+/**
+ * 添加文件到列表，点击可重新下载（处理成功时）
  * @param {string} filename - 文件名
  * @param {string} status - 状态
  * @param {string} message - 消息
@@ -107,6 +126,15 @@ function addFileToList(filename, status, message) {
         <span class="file-name">${filename}</span>
         <span class="file-status ${status}">${message}</span>
     `;
+    
+    // 点击已处理成功的文件可重新下载
+    item.addEventListener('click', () => {
+        const result = processedResults[filename];
+        if (result) {
+            saveAs(result.blob, result.filename);
+        }
+    });
+    
     fileList.appendChild(item);
 }
 
@@ -123,102 +151,6 @@ function updateFileStatus(filename, status, message) {
         statusEl.className = `file-status ${status}`;
         statusEl.textContent = message;
     }
-}
-
-/**
- * 更新按钮状态
- */
-function updateButtonStates() {
-    const processBtn = document.getElementById('processBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    
-    processBtn.disabled = files.length === 0;
-    downloadBtn.disabled = results.filter(r => r.status === 'success').length === 0;
-    clearBtn.disabled = files.length === 0;
-}
-
-/**
- * 开始处理
- */
-async function startProcessing() {
-    if (files.length === 0) {
-        alert('请先上传文件');
-        return;
-    }
-    
-    const processBtn = document.getElementById('processBtn');
-    processBtn.disabled = true;
-    processBtn.textContent = '处理中...';
-    
-    results = [];
-    
-    for (const file of files) {
-        updateFileStatus(file.name, 'processing', '处理中...');
-        
-        try {
-            const blob = await formatter.format(file);
-            const filename = file.name.replace('.docx', '_formatted.docx');
-            results.push({ filename, blob, status: 'success' });
-            updateFileStatus(file.name, 'success', '处理完成');
-        } catch (error) {
-            console.error(`处理失败: ${file.name}`, error);
-            updateFileStatus(file.name, 'error', '处理失败');
-            results.push({ filename: file.name, error: error.message, status: 'error' });
-        }
-    }
-    
-    processBtn.disabled = false;
-    processBtn.textContent = '开始处理';
-    
-    // 更新按钮状态
-    updateButtonStates();
-    
-    // 显示完成消息
-    const successCount = results.filter(r => r.status === 'success').length;
-    const errorCount = results.filter(r => r.status === 'error').length;
-    
-    if (errorCount === 0) {
-        alert(`处理完成！共 ${successCount} 个文件。`);
-    } else {
-        alert(`处理完成！成功 ${successCount} 个，失败 ${errorCount} 个。`);
-    }
-}
-
-/**
- * 下载文件
- */
-async function downloadFiles() {
-    const successResults = results.filter(r => r.status === 'success');
-    
-    if (successResults.length === 0) {
-        alert('没有可下载的文件');
-        return;
-    }
-    
-    if (successResults.length === 1) {
-        // 单文件直接下载
-        saveAs(successResults[0].blob, successResults[0].filename);
-    } else {
-        // 多文件打包为zip
-        const zip = new JSZip();
-        for (const result of successResults) {
-            zip.file(result.filename, result.blob);
-        }
-        
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        saveAs(zipBlob, 'formatted_documents.zip');
-    }
-}
-
-/**
- * 清空列表
- */
-function clearList() {
-    files = [];
-    results = [];
-    document.getElementById('fileList').innerHTML = '';
-    updateButtonStates();
 }
 
 /**

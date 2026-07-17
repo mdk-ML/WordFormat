@@ -17,28 +17,44 @@ class Formatter {
         // 1. 加载文档
         await this.handler.load(file);
         
-        // 2. 获取所有段落
-        const paragraphs = this.handler.getParagraphs();
+        // 2. 软回车→硬回车转换（对应原脚本 ^l → ^p）
+        this.handler.convertSoftReturnsToParagraphs();
         
-        // 3. 删除自动编号
+        // 3. 获取所有段落
+        let paragraphs = this.handler.getParagraphs();
+        
+        // 4. 更新样式定义（Normal/Heading1-4）
+        await this.handler.updateStyleDefinitions();
+        
+        // 5. 删除自动编号
         this._removeNumbering(paragraphs);
         
-        // 4. 处理文本（标点替换、空格处理）
+        // 6. 处理文本（标点替换、空格处理）
         this._processText(paragraphs);
         
-        // 5. 识别标题并设置样式
+        // 7. 识别标题并设置样式
         this._applyStyles(paragraphs);
         
-        // 6. 设置首段标题格式
+        // 8. 设置首段标题格式（可能插入空段落，需要重新获取段落列表）
         this._formatFirstParagraph(paragraphs);
+        paragraphs = this.handler.getParagraphs(); // 刷新引用
         
-        // 7. 加粗特定前缀
+        // 9. 加粗特定前缀
         this._applyBoldPrefixes(paragraphs);
         
-        // 8. 设置页面格式
+        // 10. 设置全文档 Times New Roman 字体（仅影响数字和英文）
+        this.handler.setAllFontsTimesNewRoman();
+        
+        // 11. 取消表格中所有段落的首行缩进
+        this.handler.removeTableIndent();
+        
+        // 12. 设置页码（奇偶页不同，"— 1 —"格式）
+        await this.handler.setPageNumber();
+        
+        // 13. 设置页面格式
         this._setPageFormat();
         
-        // 9. 保存文档
+        // 14. 保存文档
         return await this.handler.save();
     }
     
@@ -128,41 +144,70 @@ class Formatter {
     }
     
     /**
-     * 格式化首段标题
+     * 格式化首段标题（对应 FindFirstNonEmptyRange 逻辑）
+     * 收集从第一个非空段落到遇到空白段落之前的所有连续段落（最多5段），应用标题格式
      * @param {Array} paragraphs - 段落数组
      */
     _formatFirstParagraph(paragraphs) {
         // 查找第一个非空段落
-        let firstPara = null;
-        for (const para of paragraphs) {
+        let startIndex = -1;
+        for (let i = 0; i < paragraphs.length; i++) {
+            const para = paragraphs[i];
             if (para.text.trim().length > 1 && !para.hasImage) {
-                firstPara = para;
+                startIndex = i;
                 break;
             }
         }
         
-        if (!firstPara) return;
+        if (startIndex === -1) return;
         
-        // 设置标题格式：方正小标宋简体、二号、居中
-        this.handler.setParagraphFont(firstPara.index, CONFIG.fonts.title, CONFIG.fontSize.title1, false);
-        this.handler.setParagraphAlignment(firstPara.index, 'center');
-        this.handler.setLineSpacing(firstPara.index, CONFIG.lineSpacing);
-        this.handler.setFirstLineIndent(firstPara.index, 0);
+        // 收集所有连续的非空段落到遇到空白段落为止（不设上限，收集完成后判断）
+        const titleIndices = [startIndex];
+        for (let i = startIndex + 1; i < paragraphs.length; i++) {
+            const para = paragraphs[i];
+            if (para.text.trim().length <= 1 || para.hasImage) {
+                break; // 遇到空白段落或图片段落，停止收集
+            }
+            titleIndices.push(i);
+        }
+        
+        // 确定要格式化的段落索引列表：超过5段则只取第一段
+        let formatIndices;
+        if (titleIndices.length > 5) {
+            formatIndices = [startIndex];
+        } else {
+            formatIndices = titleIndices;
+        }
+        
+        // 应用标题格式到所有收集的段落
+        for (const idx of formatIndices) {
+            this.handler.setParagraphFont(idx, CONFIG.fonts.title, CONFIG.fontSize.title1, false);
+            this.handler.setParagraphAlignment(idx, 'center');
+            this.handler.setLineSpacing(idx, CONFIG.lineSpacing);
+            this.handler.setFirstLineIndent(idx, 0);
+        }
         
         // 检查标题后是否已有空段落
-        const nextIndex = firstPara.index + 1;
+        const lastTitleIndex = formatIndices[formatIndices.length - 1];
+        const nextIndex = lastTitleIndex + 1;
+        
+        let needInsert = true;
         if (nextIndex < paragraphs.length) {
             const nextPara = paragraphs[nextIndex];
-            if (nextPara.text.trim().length > 1) {
-                // 这里需要插入空段落，但在纯前端环境中比较复杂
-                // 暂时跳过，用户可以手动添加
-                console.log('提示：标题后需要手动添加空行');
+            if (nextPara.text.trim().length <= 1) {
+                needInsert = false; // 后面已经是空段落
             }
+        }
+        
+        // 只有标题后没有空段落时才插入
+        if (needInsert) {
+            this.handler.insertEmptyParagraphAfter(lastTitleIndex);
+            console.log('标题后已插入空行');
         }
     }
     
     /**
-     * 加粗特定前缀
+     * 加粗特定前缀（仅加粗匹配的前缀文本本身，而非整个段落）
      * @param {Array} paragraphs - 段落数组
      */
     _applyBoldPrefixes(paragraphs) {
@@ -170,9 +215,17 @@ class Formatter {
             if (para.hasImage) continue;
             if (para.text.trim().length <= 1) continue;
             
-            // 检查是否包含特定前缀
-            if (containsAny(para.text, CONFIG.boldPrefixes)) {
-                this.handler.setParagraphFont(para.index, null, null, true);
+            const text = para.text;
+            let hasMatch = false;
+            for (const prefix of CONFIG.boldPrefixes) {
+                if (text.includes(prefix)) {
+                    hasMatch = true;
+                    break;
+                }
+            }
+            
+            if (hasMatch) {
+                this.handler.setBoldPrefixes(para.index, CONFIG.boldPrefixes);
             }
         }
     }

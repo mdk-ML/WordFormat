@@ -1,4 +1,4 @@
-/* Word格式化工具样式 */
+/* Word格式化工具样式 - 一屏紧凑布局 */
 
 * {
     box-sizing: border-box;
@@ -6,218 +6,156 @@
     padding: 0;
 }
 
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
-    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding: 40px 20px;
+    align-items: center;
+    padding: 12px 20px;
 }
 
 .container {
     background: white;
-    border-radius: 20px;
-    padding: 40px;
+    border-radius: 12px;
+    padding: 16px 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 700px;
+    max-width: 1050px;
     width: 100%;
+    max-height: calc(100vh - 24px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 头部 */
+header {
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    flex-shrink: 0;
 }
 
 h1 {
-    text-align: center;
     color: #333;
-    margin-bottom: 8px;
-    font-size: 28px;
+    font-size: 20px;
+    margin-bottom: 4px;
 }
 
 .subtitle {
-    text-align: center;
     color: #666;
-    margin-bottom: 30px;
-    font-size: 14px;
+    font-size: 12px;
+}
+
+/* 主内容区域 - 左右布局 */
+.main-content {
+    display: flex;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+}
+
+/* 左侧文件区域 */
+.file-section {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 拖拽区域 */
 .drop-zone {
-    border: 3px dashed #667eea;
-    border-radius: 15px;
-    padding: 50px 20px;
+    border: 2px dashed #667eea;
+    border-radius: 10px;
+    padding: 16px 14px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-bottom: 24px;
+    margin-bottom: 10px;
     background: #fafbff;
+    flex-shrink: 0;
 }
 
 .drop-zone:hover {
     background: #f0f4ff;
     border-color: #764ba2;
-    transform: translateY(-2px);
 }
 
 .drop-zone.dragover {
     background: #e8eeff;
     border-color: #764ba2;
-    transform: scale(1.02);
 }
 
 .drop-zone-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 }
 
 .drop-icon {
-    font-size: 48px;
-    margin-bottom: 8px;
+    font-size: 28px;
 }
 
 .drop-zone p {
     color: #555;
-    font-size: 16px;
+    font-size: 13px;
+    margin: 0;
 }
 
 .drop-hint {
     color: #999 !important;
-    font-size: 13px !important;
+    font-size: 11px !important;
 }
 
-/* 按钮组 */
-.button-group {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-button {
-    flex: 1;
-    padding: 14px 20px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-button#processBtn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-button#processBtn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-}
-
-button#downloadBtn {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-}
-
-button#downloadBtn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
-}
-
-button#clearBtn {
-    background: linear-gradient(135deg, #dc3545 0%, #e74c5e 100%);
-    color: white;
-}
-
-button#clearBtn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
-}
-
-button:disabled {
-    background: #e0e0e0;
-    color: #999;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* 信息区域 */
-.info-section {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.info-section h3 {
-    color: #333;
-    margin-bottom: 12px;
-    font-size: 16px;
-}
-
-.info-section ul {
-    list-style: none;
-    padding: 0;
-}
-
-.info-section li {
-    color: #666;
-    font-size: 13px;
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.info-section li:last-child {
-    border-bottom: none;
-}
-
-.info-section li::before {
-    content: '•';
-    color: #667eea;
-    font-weight: bold;
-    margin-right: 8px;
+#fileInput {
+    display: none;
 }
 
 /* 文件列表 */
 .file-list {
-    max-height: 400px;
+    flex: 1;
     overflow-y: auto;
-    margin-bottom: 20px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    min-height: 60px;
 }
 
 .file-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 6px 12px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
     transition: background 0.2s ease;
-}
-
-.file-item:hover {
-    background: #f8f9fa;
 }
 
 .file-item:last-child {
     border-bottom: none;
 }
 
+.file-item:hover {
+    background: #f0f4ff;
+}
+
 .file-name {
     flex: 1;
     color: #333;
-    font-size: 14px;
+    font-size: 12px;
     word-break: break-all;
-    margin-right: 12px;
+    margin-right: 10px;
 }
 
 .file-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -249,77 +187,154 @@ button:disabled {
 }
 
 @keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.6;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* 右侧 - 独立卡片区域 */
+.info-section {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px 14px;
+    flex-shrink: 0;
+}
+
+.info-card h3 {
+    color: #444;
+    font-size: 12px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-card li {
+    color: #666;
+    font-size: 11px;
+    padding: 2px 0;
+    line-height: 1.4;
+}
+
+.info-card li strong {
+    color: #333;
+}
+
+.info-card a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.info-card a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.info-card.warning {
+    background: #fff3cd;
+}
+
+.info-card.warning h3 {
+    color: #856404;
+}
+
+.info-card.warning li {
+    color: #856404;
 }
 
 /* 页脚 */
-.footer {
+footer {
     text-align: center;
-    padding-top: 20px;
+    padding-top: 8px;
     border-top: 1px solid #eee;
+    flex-shrink: 0;
 }
 
-.footer p {
+footer p {
     color: #999;
-    font-size: 12px;
-    margin-bottom: 8px;
+    font-size: 11px;
+    margin: 0;
 }
 
-.footer p:last-child {
-    margin-bottom: 0;
+footer .repo-link {
+    margin-top: 4px;
 }
 
-/* 滚动条样式 */
+footer .repo-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+footer .repo-link a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* 滚动条 */
 .file-list::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
 
 .file-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
+    background: transparent;
 }
 
 .file-list::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: #d0d0d0;
     border-radius: 3px;
 }
 
-.file-list::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-/* 响应式设计 */
-@media (max-width: 600px) {
+/* 响应式 */
+@media (max-width: 768px) {
     body {
-        padding: 20px 10px;
+        padding: 8px 10px;
+        align-items: flex-start;
     }
     
     .container {
-        padding: 24px;
+        padding: 12px 14px;
+        max-height: none;
     }
     
     h1 {
-        font-size: 22px;
+        font-size: 18px;
     }
     
-    .button-group {
+    .main-content {
         flex-direction: column;
     }
     
-    button {
-        padding: 12px 16px;
+    .info-section {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        overflow: visible;
+    }
+    
+    .info-card {
+        flex: 1;
+        min-width: 140px;
     }
     
     .drop-zone {
-        padding: 30px 16px;
+        padding: 12px 10px;
     }
     
     .drop-icon {
-        font-size: 36px;
+        font-size: 24px;
     }
 }

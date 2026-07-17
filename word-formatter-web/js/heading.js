@@ -14,6 +14,11 @@ function identifyHeadingLevel(text, index, allParagraphs) {
     const trimmedText = text.trim();
     if (!trimmedText) return null;
     
+    // 如果文本过长（超过一行），不判定为标题
+    // 对应 Format2GBT9704_2012.js 中 ComputeStatistics(wdStatisticLines) > 1 的检查
+    // 16pt字体在A4标准页边距下，一行约可容纳35个中文字符
+    if (trimmedText.length > 35) return null;
+    
     // 检查一级标题
     for (const prefix of CONFIG.headings.level1) {
         if (trimmedText.startsWith(prefix)) {
